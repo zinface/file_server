@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <netinet/in.h>
-#include<arpa/inet.h>
+#include <arpa/inet.h>
 #include <pthread.h>
 #include <unistd.h>
 
@@ -29,5 +29,4 @@ int main(int argc,char *args[]){
     close(client_fd);
     free(file_content);
     return 0;
-    
 }
