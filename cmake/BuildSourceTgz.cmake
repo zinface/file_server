@@ -17,6 +17,7 @@ install(FILES
     server.h 
     wrap.c wrap.h
     common.c common.h
+    progress.c
     
 
     DESTINATION target

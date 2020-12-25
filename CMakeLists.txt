@@ -4,6 +4,7 @@ include(cmake/BuildSourceTgz.cmake)
 
 add_executable(server server.c wrap.c common.c)
 add_executable(client client.c wrap.c common.c)
+add_executable(progress progress.c)
 
 
 # add_executable(echo_server echo_server.c wrap.c)

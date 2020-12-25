@@ -67,7 +67,7 @@ void buildBufferFromFile(char **buffer, long _fsize, FILE *_fp){
 
 char *buildBufferFromFileName(char *filename){
     FILE *fp = NULL;
-    void *buffer = NULL;
+    char *buffer = NULL;
     long file_size;
 
     if((fp = fopen(filename,"r")) == NULL){
@@ -78,6 +78,9 @@ char *buildBufferFromFileName(char *filename){
     file_size = getFileLength(fp);
     buildBufferFromFile(&buffer, file_size, fp);   // buffer = char *buffer    指针传;      char *buffer 收  / buffer 改
                                                    // &buffer = char* *buffer  指针地址传    char **buffer 收 / *buffer 改
+    for(int i = 0; i < file_size; i++){
+        printf("%c",(char)(buffer[i]));
+    }
     fclose(fp);
     return buffer;
 }
@@ -95,12 +98,30 @@ void sendPackage(int client_fd, struct package_t *package, char* filename) {
     write(client_fd, package->file_content, getFileLengthForName(filename));
 }
 
+void usage(char *program,int status) {
+    printf("Usage: %s [FILE]...\n", program);
+    printf("");
+    exit(status);
+}
+
 // -------------------------------------------------------------------------- main
+// usage: ./server /path/to/file
 int main(int argc,char *args[]){
     struct package_t package = {0};
-    char *filename = "test.txt";
+    int c;
     int listenfd, client_fd;
-    filename, getFileLengthForName(filename);
+    char *filename = NULL;
+    if (argc < 2) {
+        usage(args[0], 1);
+    }
+
+    filename = args[1];
+    
+    if(getFileLengthForName(filename) == -1) {
+        // cat: 不适用的选项 -- h
+        printf("%s: 可能是不正确的文件.\n", args[0]);
+        usage(args[0], 1);
+    }
 
     listenfd = buildServerListen(LISTEN_ADDR, LISTEN_PORT);
     client_fd= buildClientResponse(listenfd);
