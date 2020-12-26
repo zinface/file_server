@@ -78,9 +78,6 @@ char *buildBufferFromFileName(char *filename){
     file_size = getFileLength(fp);
     buildBufferFromFile(&buffer, file_size, fp);   // buffer = char *buffer    指针传;      char *buffer 收  / buffer 改
                                                    // &buffer = char* *buffer  指针地址传    char **buffer 收 / *buffer 改
-    for(int i = 0; i < file_size; i++){
-        printf("%c",(char)(buffer[i]));
-    }
     fclose(fp);
     return buffer;
 }
@@ -103,6 +100,31 @@ void usage(char *program,int status) {
     printf("");
     exit(status);
 }
+
+// int ports[] = {8800, 8801, 8802, 8803, 8804};                                                                      
+// int tag = 1;                                                                                                       
+// for (size_t i = 0; i < sizeof(ports) / sizeof(ports[0]); i++)                                                      
+// {                                                                                                                  
+//     server_addr.sin_port = htons(ports[i]);                                                                        
+//     if ((tag = bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr))) < 0)                     
+//     {                                                                                                              
+//         continue;                                                                                                  
+//     }                                                                                                              
+//     else                                                                                                           
+//     {                                                                                                              
+//         FILE *fp = fopen(SERVER_PORT_FILE, "w");                                                                   
+//         if (!fp)                                                                                                   
+//         {                                                                                                          
+//             perror("File opening failed");                                                                         
+//             return EXIT_FAILURE;                                                                                   
+//         }                                                                                                          
+//         fprintf(fp, "%d", ports[i]);                                                                               
+//         fsync(fileno(fp));                                                                                         
+//         fflush(fp);                                                                                                
+//         fclose(fp);                                                                                                
+//         break;                                                                                                     
+//     }                                                                                                              
+// }       
 
 // -------------------------------------------------------------------------- main
 // usage: ./server /path/to/file

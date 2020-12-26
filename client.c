@@ -11,7 +11,10 @@
 #include "wrap.h"
 
 #define LOCAL_HOST "127.0.0.1"
-
+#define MACHINE_PORT 8082
+// #if 
+#define fastServer(argc, args, client) \
+        buildServer(client, AF_INET, ((argc<2)?LOCAL_HOST:args[1]), MACHINE_PORT)
 
 void usage(char *program,int status) {
     printf("Usage: %s [destination]...\n", program);
@@ -25,11 +28,7 @@ int main(int argc,char *args[]){
     int client_fd;
     FILE *fp = NULL;
 
-    if (argc < 2) {
-        buildServer(&client, AF_INET, LOCAL_HOST, 8082);
-    } else {
-        buildServer(&client, AF_INET, args[1], 8082);
-    }
+    fastServer(argc, args, &client);
 
     client_fd = Socket(AF_INET, SOCK_STREAM, 0);
 
