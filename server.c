@@ -82,23 +82,91 @@ char *buildBufferFromFileName(char *filename){
     return buffer;
 }
 
-// -------------------------------------------------------------------------- package
-void buildPackage(struct package_t *package, char* filename){
-    package->package_len = getFileLengthForName(filename);
-    memcpy(package->filename, filename, strlen(filename));
-    package->file_content = buildBufferFromFileName(filename);
+// ------ buffer/fp
+void storeBufferFromFile(char *buffer, FILE *_fp, long start, long part){
+    fseek(_fp, start, SEEK_SET);
+    fread(buffer, 1, part, _fp);
 }
 
-void sendPackage(int client_fd, struct package_t *package, char* filename) {
+// -------------------------------------------------------------------------- package
+void buildPartPackage(struct package_t *package, char* buffer, long start, long psize){
+    package->package_len = psize;
+    package->_start = start;
+    // memcpy(package->filename, "", strlen(""));
+    package->file_content = buffer;
+}
+void sendPartPackage(int client_fd, struct package_t *package) {
+    // write(client_fd, &package->package_len, 4);
+    // write(client_fd, &package->_start, 4);
+    write(client_fd, package->file_content, package->package_len);
+}
+
+// ------ simple start
+void buildSimplePackage(struct package_t *package, long fsize, char* filename){
+    printf("    // 文件长度：%ld\n", fsize);
+    printf("    // 文件名称：%s\n", filename);
+    package->package_len = fsize;
+    memcpy(package->filename, filename, strlen(filename));
+}
+
+void sendSimplePackage(int client_fd, struct package_t *package) {
     write(client_fd, &package->package_len, 4);
     write(client_fd, package->filename, sizeof(package->filename));
-    write(client_fd, package->file_content, getFileLengthForName(filename));
 }
-
+// ------ simple  end
 void usage(char *program,int status) {
     printf("Usage: %s [FILE]...\n", program);
     printf("");
     exit(status);
+}
+
+void doExchange(int client_fd, char* filename){
+    struct package_t package = {0};
+    int part = 4096;
+    char buffer[part];
+    FILE *fp = NULL;
+
+    fp = fopen(filename,"r");
+
+    // 总大小
+    long fsize = getFileLength(fp);
+    // 切片分段整(4096)
+    int integerSize = fsize / part;
+    // 切片分段余(4096)
+    int remainderSize = fsize % part;
+
+
+// send 基础信息
+printf("// send 基础信息\n"); 
+    buildSimplePackage(&package, fsize, filename);
+    sendSimplePackage(client_fd, &package);
+    printf("    // send 切片分段整: %d 片(%d字节/片)\n",integerSize, part);
+    printf("    // send 切片分段余: %d 字节\n",remainderSize);
+    fflush(stdout);
+
+// send 分段整
+printf("// send 分段整\r"); fflush(stdout);
+    long cnt = 0;
+    while (cnt != integerSize*part)
+    {
+        storeBufferFromFile(buffer, fp, cnt, part);
+        buildPartPackage(&package, buffer, cnt, part);
+        sendPartPackage(client_fd, &package);
+        cnt+=part;
+        printf("// send 分段整: %d / %d\r", integerSize, cnt/part);
+        fflush(stdout);
+        usleep(10000);
+    }
+    printf("\n");
+// send 分段余
+printf("// send 分段余\r"); fflush(stdout);
+    cnt = 0;
+    storeBufferFromFile(buffer, fp, cnt, remainderSize);
+    buildPartPackage(&package, buffer, cnt, remainderSize);
+    sendPartPackage(client_fd, &package);
+    printf("// send 分段余: %d / %d\r", remainderSize, remainderSize); 
+    fflush(stdout);
+    printf("\n");
 }
 
 // int ports[] = {8800, 8801, 8802, 8803, 8804};                                                                      
@@ -148,8 +216,7 @@ int main(int argc,char *args[]){
     listenfd = buildServerListen(LISTEN_ADDR, LISTEN_PORT);
     client_fd= buildClientResponse(listenfd);
 
-    buildPackage(&package, filename);
-    sendPackage(client_fd, &package, filename);
+    doExchange(client_fd, filename);
 
     close(client_fd);
 }

@@ -7,6 +7,7 @@
 struct package_t
 {
     uint32_t package_len;
+    uint32_t _start;
     char filename[256];
     char *file_content;
 }; // plen/filename/conten_len

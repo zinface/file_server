@@ -39,10 +39,18 @@ int main(int argc,char *args[]){
         return -1;
     }
 
+    int part = 4096;
+    char buffer[part];
+    long fsize = package.package_len;
+    // 切片分段整(4096)
+    int integerSize = fsize / part;
+    // 切片分段余(4096)
+    int remainderSize = fsize % part;
+
     read(client_fd, package.filename, sizeof(package.filename));
+    fp = fopen(package.filename, "w+");
     
-    package.file_content = createBufferSize(package.package_len);
-    long cnt = 0;
+    // package.file_content = createBufferSize(package.package_len);
     printf("file length: %ld\n",package.package_len);
     sleep(2);
 
@@ -52,30 +60,41 @@ int main(int argc,char *args[]){
         bar[i] = '#';
     }
     int tag = -1;
-    while (cnt != package.package_len)
-    {
-        int i = read(client_fd, package.file_content+cnt, 1000);
-        if (i>0) {
-            cnt +=i;
+
+    for (int i = 0; i != integerSize; i++) {
+        long cnt = 0;
+        while (cnt != part)
+        {
+            cnt+=read(client_fd, buffer + cnt, part - (cnt % part));
         }
-        int cur = 100.0 - ((package.package_len - cnt) / (package.package_len / 100.0));
+        fseek(fp,i*part,SEEK_SET);
+        fwrite(buffer, 1, part, fp);
+
+        int cur = 100.0 - ((fsize - i*part) / (fsize / 100.0));
 
         if(cur != tag) {
             printf("progress:[%s]%d%%\r", bar+len-cur/5, cur);
             fflush(stdout); //一定要fflush，否则不会会因为缓冲无法定时输出。
-            usleep(100000);
+            usleep(10000);
             tag = cur;
         }
     }
 
-    printf("\n");
+    long cnt = 0;
+    while (cnt != remainderSize)
+    {
+        cnt+=read(client_fd, buffer + cnt, remainderSize - (cnt % remainderSize));
+    }
+    fseek(fp,fsize-remainderSize,SEEK_SET);
+    fwrite(buffer, 1, remainderSize, fp);
 
-    
-    fp = fopen(package.filename, "w+");
-    fwrite(package.file_content, 1, package.package_len, fp);
+    printf("progress:[%s]%d%%\r", bar+len-100/5, 100);
+    fflush(stdout); //一定要fflush，否则不会会因为缓冲无法定时输出。
+    usleep(100000);
+
+    printf("\n");
     fflush(fp);
     close(client_fd);
-    free(package.file_content);
 
     printf("file is save: %s\n", package.filename);
     return 0;
