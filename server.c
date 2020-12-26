@@ -155,7 +155,7 @@ printf("// send 分段整\r"); fflush(stdout);
         cnt+=part;
         printf("// send 分段整: %d / %d\r", integerSize, cnt/part);
         fflush(stdout);
-        usleep(10000);
+        // usleep(100);
     }
     printf("\n");
 // send 分段余

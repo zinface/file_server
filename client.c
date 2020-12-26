@@ -75,7 +75,7 @@ int main(int argc,char *args[]){
         if(cur != tag) {
             printf("progress:[%s]%d%%\r", bar+len-cur/5, cur);
             fflush(stdout); //一定要fflush，否则不会会因为缓冲无法定时输出。
-            usleep(10000);
+            // usleep(100);
             tag = cur;
         }
     }
