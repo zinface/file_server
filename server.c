@@ -161,8 +161,8 @@ printf("// send 分段整\r"); fflush(stdout);
 // send 分段余
 printf("// send 分段余\r"); fflush(stdout);
     cnt = 0;
-    storeBufferFromFile(buffer, fp, cnt, remainderSize);
-    buildPartPackage(&package, buffer, cnt, remainderSize);
+    storeBufferFromFile(buffer, fp, fsize-remainderSize, remainderSize);
+    buildPartPackage(&package, buffer, fsize-remainderSize, remainderSize);
     sendPartPackage(client_fd, &package);
     printf("// send 分段余: %d / %d\r", remainderSize, remainderSize); 
     fflush(stdout);
