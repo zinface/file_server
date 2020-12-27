@@ -122,8 +122,8 @@ void usage(char *program,int status) {
 
 void doExchange(int client_fd, char* filename){
     struct package_t package = {0};
-    int part = 4096;
-    char buffer[part];
+    
+    char buffer[DATA_PART];
     FILE *fp = NULL;
 
     fp = fopen(filename,"r");
@@ -131,29 +131,29 @@ void doExchange(int client_fd, char* filename){
     // 总大小
     long fsize = getFileLength(fp);
     // 切片分段整(4096)
-    int integerSize = fsize / part;
+    int integerSize = fsize / DATA_PART;
     // 切片分段余(4096)
-    int remainderSize = fsize % part;
+    int remainderSize = fsize % DATA_PART;
 
 
 // send 基础信息
 printf("// send 基础信息\n"); 
     buildSimplePackage(&package, fsize, filename);
     sendSimplePackage(client_fd, &package);
-    printf("    // send 切片分段整: %d 片(%d字节/片)\n",integerSize, part);
+    printf("    // send 切片分段整: %d 片(%d字节/片)\n",integerSize, DATA_PART);
     printf("    // send 切片分段余: %d 字节\n",remainderSize);
     fflush(stdout);
 
 // send 分段整
 printf("// send 分段整\r"); fflush(stdout);
     long cnt = 0;
-    while (cnt != integerSize*part)
+    while (cnt != integerSize*DATA_PART)
     {
-        storeBufferFromFile(buffer, fp, cnt, part);
-        buildPartPackage(&package, buffer, cnt, part);
+        storeBufferFromFile(buffer, fp, cnt, DATA_PART);
+        buildPartPackage(&package, buffer, cnt, DATA_PART);
         sendPartPackage(client_fd, &package);
-        cnt+=part;
-        printf("// send 分段整: %d / %d\r", integerSize, cnt/part);
+        cnt+=DATA_PART;
+        printf("// send 分段整: %d / %d\r", integerSize, cnt/DATA_PART);
         fflush(stdout);
         // usleep(100);
     }

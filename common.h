@@ -4,6 +4,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#define DATA_PART 4096
+
 struct package_t
 {
     uint32_t package_len;

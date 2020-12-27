@@ -39,13 +39,13 @@ int main(int argc,char *args[]){
         return -1;
     }
 
-    int part = 4096;
-    char buffer[part];
+
+    char buffer[DATA_PART];
     long fsize = package.package_len;
     // 切片分段整(4096)
-    int integerSize = fsize / part;
+    int integerSize = fsize / DATA_PART;
     // 切片分段余(4096)
-    int remainderSize = fsize % part;
+    int remainderSize = fsize % DATA_PART;
 
     read(client_fd, package.filename, sizeof(package.filename));
     fp = fopen(package.filename, "w+");
@@ -63,14 +63,14 @@ int main(int argc,char *args[]){
 
     for (int i = 0; i != integerSize; i++) {
         long cnt = 0;
-        while (cnt != part)
+        while (cnt != DATA_PART)
         {
-            cnt+=read(client_fd, buffer + cnt, part - (cnt % part));
+            cnt+=read(client_fd, buffer + cnt, DATA_PART - (cnt % DATA_PART));
         }
-        fseek(fp,i*part,SEEK_SET);
-        fwrite(buffer, 1, part, fp);
+        fseek(fp,i*DATA_PART,SEEK_SET);
+        fwrite(buffer, 1, DATA_PART, fp);
 
-        int cur = 100.0 - ((fsize - i*part) / (fsize / 100.0));
+        int cur = 100.0 - ((fsize - i*DATA_PART) / (fsize / 100.0));
 
         if(cur != tag) {
             printf("progress:[%s]%d%%\r", bar+len-cur/5, cur);
