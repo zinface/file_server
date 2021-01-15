@@ -41,46 +41,6 @@ int buildClientResponse(int server_fd){
 }
 
 // --------------------------------------------------------------------------file/buffer
-long getFileLength(FILE *_fp){
-    fseek(_fp,0,SEEK_END);
-    return ftell(_fp);
-}
-long getFileLengthForName(char *filename){
-    FILE *fp = NULL;
-    long file_size;
-    
-    if((fp = fopen(filename,"r")) == NULL){
-        printf("打开文件失败\n");
-        return -1;
-    }
-    file_size = getFileLength(fp);
-    
-    fclose(fp);
-    return file_size;
-}
-
-void buildBufferFromFile(char **buffer, long _fsize, FILE *_fp){
-    *buffer = createBufferSize(_fsize);
-    rewind(_fp);
-    fread(*buffer, 1, _fsize, _fp);
-}
-
-char *buildBufferFromFileName(char *filename){
-    FILE *fp = NULL;
-    char *buffer = NULL;
-    long file_size;
-
-    if((fp = fopen(filename,"r")) == NULL){
-        printf("获取文件失败\n");
-        return NULL;
-    }
-    
-    file_size = getFileLength(fp);
-    buildBufferFromFile(&buffer, file_size, fp);   // buffer = char *buffer    指针传;      char *buffer 收  / buffer 改
-                                                   // &buffer = char* *buffer  指针地址传    char **buffer 收 / *buffer 改
-    fclose(fp);
-    return buffer;
-}
 
 // ------ buffer/fp
 void storeBufferFromFile(char *buffer, FILE *_fp, long start, long part){
@@ -110,8 +70,14 @@ void buildSimplePackage(struct package_t *package, long fsize, char* filename){
 }
 
 void sendSimplePackage(int client_fd, struct package_t *package) {
-    write(client_fd, &package->package_len, 4);
     write(client_fd, package->filename, sizeof(package->filename));
+    read(client_fd, &package->_start, 4);
+    if(package->_start != -1){
+        package->package_len = package->package_len - package->_start;
+    }else{
+        package->_start = 0;
+    }
+    write(client_fd, &package->package_len, 4);
 }
 // ------ simple  end
 void usage(char *program,int status) {
@@ -128,26 +94,29 @@ void doExchange(int client_fd, char* filename){
 
     fp = fopen(filename,"r");
 
-    // 总大小
+    // 文件总大小
     long fsize = getFileLength(fp);
-    // 切片分段整(4096)
-    int integerSize = fsize / DATA_PART;
-    // 切片分段余(4096)
-    int remainderSize = fsize % DATA_PART;
 
 
 // send 基础信息
 printf("// send 基础信息\n"); 
     buildSimplePackage(&package, fsize, filename);
     sendSimplePackage(client_fd, &package);
+
+    // 切片分段整(4096)
+    int integerSize = package.package_len / DATA_PART;
+    // 切片分段余(4096)
+    int remainderSize = package.package_len % DATA_PART;
+
     printf("    // send 切片分段整: %d 片(%d字节/片)\n",integerSize, DATA_PART);
     printf("    // send 切片分段余: %d 字节\n",remainderSize);
     fflush(stdout);
 
+
 // send 分段整
 printf("// send 分段整\r"); fflush(stdout);
-    long cnt = 0;
-    while (cnt != integerSize*DATA_PART)
+    long cnt = package._start;
+    while (cnt != integerSize*DATA_PART + package._start)
     {
         storeBufferFromFile(buffer, fp, cnt, DATA_PART);
         buildPartPackage(&package, buffer, cnt, DATA_PART);
@@ -161,7 +130,7 @@ printf("// send 分段整\r"); fflush(stdout);
 // send 分段余
 printf("// send 分段余\r"); fflush(stdout);
     cnt = 0;
-    storeBufferFromFile(buffer, fp, fsize-remainderSize, remainderSize);
+    storeBufferFromFile(buffer, fp, fsize-remainderSize + package._start, remainderSize);
     buildPartPackage(&package, buffer, fsize-remainderSize, remainderSize);
     sendPartPackage(client_fd, &package);
     printf("// send 分段余: %d / %d\r", remainderSize, remainderSize); 

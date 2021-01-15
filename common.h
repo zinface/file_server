@@ -1,6 +1,8 @@
 #ifndef __COMMON_H_
 #define __COMMON_H_
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
@@ -17,4 +19,7 @@ struct package_t
 void buildServer(struct sockaddr_in* servaddr, sa_family_t family, char* address , in_port_t port);
 char *createBufferSize(long _msize);
 
+// --------------------------------------------------------------------------file
+long getFileLength(FILE *_fp);
+long getFileLengthForName(char *filename);
 #endif // __COMMON_H_
