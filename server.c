@@ -82,7 +82,7 @@ void sendSimplePackage(int client_fd, struct package_t *package) {
 // ------ simple  end
 void usage(char *program,int status) {
     printf("Usage: %s [FILE]...\n", program);
-    printf("");
+    printf("\n");
     exit(status);
 }
 
@@ -122,7 +122,7 @@ printf("// send 分段整\r"); fflush(stdout);
         buildPartPackage(&package, buffer, cnt, DATA_PART);
         sendPartPackage(client_fd, &package);
         cnt+=DATA_PART;
-        printf("// send 分段整: %d / %d\r", integerSize, cnt/DATA_PART);
+        printf("// send 分段整: %d / %ld\r", integerSize, cnt/DATA_PART);
         fflush(stdout);
         // usleep(100);
     }

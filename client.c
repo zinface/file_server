@@ -21,7 +21,7 @@
 
 void usage(char *program,int status) {
     printf("Usage: %s [destination]...\n", program);
-    printf("");
+    printf(" ");
     exit(status);
 }
 
