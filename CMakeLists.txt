@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5.1)
 
 project(file-server VERSION 0.1)
 
+set(CMAKE_C_FLAG "-w")
+
 include(cmake/BuildSourceTgz.cmake)
 
 add_executable(server server.c wrap.c common.c)
