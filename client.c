@@ -39,9 +39,15 @@ int main(int argc,char *args[]){
 
 // -------------------------------------------------------------------------- file header message
 // -------------------------------------------------------------------------- receive file name
-    if(read(client_fd, package.filename, sizeof(package.filename)) == -1)
+    if (read(client_fd, &package.package_len, sizeof(package.package_len)) == -1)
     {
-        printf("not receive data...\n");
+        printf("not receive data -- 1 ...\n");
+        return -1;
+    }
+
+    if(read(client_fd, package.filename, package.package_len) == -1)
+    {
+        printf("not receive data -- 2...\n");
         return -1;
     }
     bool curfexists = (access(package.filename, F_OK) == 0 ? true : false);

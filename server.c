@@ -70,6 +70,8 @@ void buildSimplePackage(struct package_t *package, long fsize, char* filename){
 }
 
 void sendSimplePackage(int client_fd, struct package_t *package) {
+    int fNameLength = sizeof(package->filename);
+    write(client_fd, &fNameLength, sizeof(package->package_len));
     write(client_fd, package->filename, sizeof(package->filename));
     read(client_fd, &package->_start, 4);
     if(package->_start != -1){
